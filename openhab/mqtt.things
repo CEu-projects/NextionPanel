@@ -1,0 +1,7 @@
+Bridge mqtt:broker:MQTTBroker [ host="localhost", secure=false, username="openhabian", password="ABCDEFG"] {
+  Thing topic NSPanel_01 "NSPanel_01" {
+    Channels:
+      Type string : result   [stateTopic="Tasmota-NSPanel-01/RESULT"]
+      Type string : send [commandTopic="Tasmota-NSPanel-01/cmnd/NextionSend"] 
+  }
+}

@@ -1,0 +1,42 @@
+rule "AktualisiereNSPanel"
+when
+    Time cron "0 0/1 * ? * * *"
+then
+    NSPanel_01_send.sendCommand("setTextById~2~"+String.format("%1$tH:%1$tM", now))
+    NSPanel_01_send.sendCommand("setTextById~3~"+TempSensor_01_tempDS18B20.state.format("%.1f"))
+    NSPanel_01_send.sendCommand("setTextById~5~"+TempSensor_06_tempDHT.state.format("%.1f"))
+
+    NSPanel_01_send.sendCommand("setTextById~7~"+SMA_Gesamt_power_temp.state.format("%.0f")+ " W")
+    NSPanel_01_send.sendCommand("setTextById~8~"+CMI_Analog_In_6.state.format("%.0f")+ " W")
+end
+
+rule "NextionPanelTrigger"
+when
+ Item NSPanel_01_result changed
+then
+    var String message = NSPanel_01_result.state.toString
+
+    if (message.contains ("NextionReceive"))
+    {
+        //logInfo("NextionPanelTrigger", "message: " + message )
+        
+        var event = transform("JSONPATH", "$.NextionReceive.event", message)
+        if( event !== null ) {
+            //logInfo("NextionPanelTrigger", "event: " + event )
+            switch(event)
+            {
+                case "startup":
+                    NSPanel_01_send.sendCommand("pageByName~pageHome")
+                case "showPage":
+                {
+                    var pageName = transform("JSONPATH", "$.NextionReceive.pageName", message)
+                    if( pageName.equals ("pageHome") )
+                    {
+                        NSPanel_01_send.sendCommand("setTextById~6~PV")
+                        NSPanel_01_send.sendCommand("setTextById~9~Bezug")
+                    }
+                }
+            }
+        }
+    }
+end
