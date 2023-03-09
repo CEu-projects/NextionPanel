@@ -322,10 +322,6 @@ class Nextion : Driver
         self.flash_nextion("http://openhab:9090/openhabDisplay.tft")
     end
 	
-	def installFromGithub()
-        self.flash_nextion("https://github.com/CEu-projects/NextionPanel/raw/main/HMI/nspanel.tft")
-    end
-	
     def set_clock()
       var now = tasmota.rtc()
       var time_raw = now['local']
@@ -406,17 +402,11 @@ def install_NextionPanel()
     tasmota.resp_cmnd_done()
 end
 
-def install_FromGithub()
-    tasmota.set_timer(50,/->nextion.installFromGithub())
-    tasmota.resp_cmnd_done()
-end
-
 tasmota.add_cmd('NextionSendNative', send_cmd)
 tasmota.add_cmd('NextionSend', send_cmd2)
 tasmota.add_cmd('FlashNextion', flash_nextion)
 tasmota.add_cmd('FlashNextionAdv', flash_nextion_adv)
 tasmota.add_cmd('InstallNsPanel', install_NsPanel)
 tasmota.add_cmd('InstallNextionPanel', install_NextionPanel)
-tasmota.add_cmd('InstallFromGithub', install_FromGithub)
 
 tasmota.add_rule("Time#Minute", /-> nextion.set_clock())

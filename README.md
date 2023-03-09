@@ -4,6 +4,7 @@ Lightwight UI for NSPanel or other Nextion-Panels connected on an ESP32 with Tas
 Inspiration for this project was https://github.com/joBr99/nspanel-lovelace-ui.
 
 Anleitung zur Einrichtung
+* einen lokalen Webserver bereitstellen und die Datei NSPanel.tft (siehe HMI/NSPanel.tft) ablegen (z.B. unter http://openhab:9090/NSPanel.tft); dafür nicht den Openhab-internen Webserver nutzen, da dieser hierfür nicht korrekt funktioniert (keine content lenght wird herausgegeben)
 * Tasmota NSPanel-Version flashen: http://ota.tasmota.com/tasmota32/release-12.2.0/
-* im Filesystem die autostart.be ersetzen/anlegen
-* Neustart und in der Console <b>InstallFromGithub</b> aufrufen
+* die unter Tasmota/autoexec.be im Tasmota-Filesystem ablegen / austauschen - dabei eventuell die Adresse der NSPanel.tft anpassen
+* Neustart und in der Console <b>InstallNSPanel</b> aufrufen
