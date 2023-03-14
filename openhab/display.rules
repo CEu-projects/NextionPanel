@@ -1,28 +1,65 @@
+val switchButtonState = [ SwitchItem item |
+    if (item.state == ON)
+    {
+        item.postUpdate(OFF);
+    } 
+    else if (item.state == OFF)
+    {
+        item.postUpdate(ON);
+    }
+]
+
+val updateButtonState = [ SwitchItem item, int textId |    
+    NSPanel_01_send.sendCommand("setTextById~"+textId+"~"+item.state.toString)
+    if(item.state == ON)
+    {
+        NSPanel_01_send.sendCommand("setBGColorById~"+textId+"~1024")
+    }
+    else
+    {
+        NSPanel_01_send.sendCommand("setBGColorById~"+textId+"~63488")
+    }
+]
+
 rule "AktualisiereNSPanel"
 when
     Time cron "0 0/1 * ? * * *"
 then
-    NSPanel_01_send.sendCommand("setTextById~2~"+String.format("%1$tH:%1$tM", now))
-    NSPanel_01_send.sendCommand("setTextById~3~"+TempSensor_01_tempDS18B20.state.format("%.1f"))
-    NSPanel_01_send.sendCommand("setTextById~5~"+TempSensor_06_tempDHT.state.format("%.1f"))
+	if( NSPanel_01_activePage.state.toString.equals ("pageHome") )
+    {
+		NSPanel_01_send.sendCommand("setTextById~2~"+String.format("%1$tH:%1$tM", now))
+		NSPanel_01_send.sendCommand("setTextById~3~"+TempSensor_01_tempDS18B20.state.format("%.1f"))
+		NSPanel_01_send.sendCommand("setTextById~5~"+TempSensor_06_tempDHT.state.format("%.1f"))
 
-    NSPanel_01_send.sendCommand("setTextById~7~"+SMA_Gesamt_power_temp.state.format("%.0f")+ " W")
-    NSPanel_01_send.sendCommand("setTextById~8~"+CMI_Analog_In_6.state.format("%.0f")+ " W")
+		NSPanel_01_send.sendCommand("setTextById~7~"+SMA_Gesamt_power_temp.state.format("%.0f")+ " W")
+		NSPanel_01_send.sendCommand("setTextById~8~"+CMI_Analog_In_6.state.format("%.0f")+ " W")
+	}
+end
+
+rule "UpdateButtons"
+when
+ Item Tasmota_Shelly_03_power changed
+then
+    if( NSPanel_01_activePage.state.toString.equals ("pageButtons") )
+    {
+        updateButtonState.apply(Tasmota_Shelly_03_power, 5)
+    }
 end
 
 rule "NextionPanelTrigger"
 when
- Item NSPanel_01_result changed
+ Item NSPanel_01_result received update
 then
     var String message = NSPanel_01_result.state.toString
-
+    
     if (message.contains ("NextionReceive"))
     {
-        //logInfo("NextionPanelTrigger", "message: " + message )
+        logInfo("NextionPanelTrigger", "message: " + message )
         
         var event = transform("JSONPATH", "$.NextionReceive.event", message)
         if( event !== null ) {
-            //logInfo("NextionPanelTrigger", "event: " + event )
+            //logInfo("NextionPanelTrigger", "message: " + message )
+            logInfo("NextionPanelTrigger", "event: " + event )
             switch(event)
             {
                 case "startup":
@@ -30,10 +67,32 @@ then
                 case "showPage":
                 {
                     var pageName = transform("JSONPATH", "$.NextionReceive.pageName", message)
+                    logInfo("NextionPanelTrigger", "page: " + pageName )
                     if( pageName.equals ("pageHome") )
                     {
+                        NSPanel_01_activePage.postUpdate( "pageHome" )
                         NSPanel_01_send.sendCommand("setTextById~6~PV")
                         NSPanel_01_send.sendCommand("setTextById~9~Bezug")
+                    }
+                    else if( pageName.equals ("pageButtons") )
+                    {
+                        NSPanel_01_activePage.postUpdate( "pageButtons" )
+                        NSPanel_01_send.sendCommand("setTextById~2~Shelly")
+
+                        updateButtonState.apply(Tasmota_Shelly_03_power, 5)
+                    }
+                    else
+                    {
+                        NSPanel_01_activePage.postUpdate( "unbekannte Seite" )
+                    }
+                }
+                case "releaseButton":
+                {
+                    var page = transform("JSONPATH", "$.NextionReceive.pageName", message)
+                    var objectName = transform("JSONPATH", "$.NextionReceive.objectName", message)
+                    if( page.equals ("pageButtons") && objectName.equals ("button1"))
+                    {
+                        switchButtonState.apply(Tasmota_Shelly_03_power)
                     }
                 }
             }
