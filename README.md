@@ -17,7 +17,7 @@ Seite anzeigen mit definiertem Namen
 
 Seite anzeigen mit definierter Id
 * pageById~[Id der Seite]
-* pageById~1
+* Beispiel: pageById~1
 
 Text eines Elements setzen
 * setTextById~[Id des Feldes]~Text
