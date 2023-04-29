@@ -1,2 +1,3 @@
 String NSPanel_01_send "NSPanel_01_send" 	                                                                    { channel="mqtt:topic:MQTTBroker:NSPanel_01:send" }
 String NSPanel_01_result "NSPanel_01_result" 	                                                                { channel="mqtt:topic:MQTTBroker:NSPanel_01:result" }
+String NSPanel_01_activePage
